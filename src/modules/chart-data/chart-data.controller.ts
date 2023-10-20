@@ -7,6 +7,6 @@ export class ChartDataController {
 
   @Get("generate")
   generateData(@Query("count") count) {
-    return this.chartData.generateChart(count)
+    return this.chartData.generateChart(Number(count))
   }
 }
