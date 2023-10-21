@@ -5,7 +5,7 @@ type FindByUsername = {
   username: string
   image: string | null
   role: string
-  accessCharts: number[]
+  accessCharts: ObjectId[]
 }
 
 export type { FindByUsername }
