@@ -25,8 +25,8 @@ export class ChartDataController {
 
   @UseGuards(AccessTokenGuard)
   @Get("getChart")
-  getChart(@Query() id: string) {
-    return this.chartData.getChart(id)
+  getChart(@Req() req: Request, @Query() id: any) {
+    return this.chartData.getChart(req, id.id)
   }
 
   @UseGuards(AccessTokenGuard)

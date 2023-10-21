@@ -7,6 +7,9 @@ export type DashboardsDocument = HydratedDocument<Dashboards>
 @Schema({ collection: "Dashboards", versionKey: false })
 export class Dashboards extends Document {
   @Prop({ required: true, unique: true })
+  _id: string
+
+  @Prop({ required: true, unique: true })
   name: string
 
   @Prop({

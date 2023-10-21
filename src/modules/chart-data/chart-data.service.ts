@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from "@nestjs/common"
-import { IChartData } from "./types/chartData"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model, Types } from "mongoose"
 import { Request } from "express"
@@ -8,7 +7,7 @@ import { ChartDataDto } from "./dto/chartData.dto"
 import { Dashboards } from "./schemas/dashboards.schema"
 import { GiveAccessDto } from "./dto/giveAccess.dto"
 
-const randomNumber = (max: number) => Math.floor(Math.random() * max)
+const randomNumber = (max: number) => Math.floor(Math.random() * (max - 1)) + 1
 
 const getRandomDate = (baseDate: Date, count: number): Date =>
   new Date(baseDate.getTime() + (count * 5 + 1) * 24 * 60 * 60 * 1000)
@@ -25,15 +24,10 @@ export class ChartDataService {
 
     if (!userId) throw new BadRequestException("userId not exist")
 
-    const chartData: IChartData[] = new Array(chartDataDto.count)
+    const chartData = new Array(chartDataDto.count ?? randomNumber(10))
       .fill(0)
       .map(() => ({
-        id: new Types.ObjectId(),
-      }))
-
-    chartData.forEach((el, index) => {
-      chartData[index] = {
-        ...el,
+        _id: new Types.ObjectId(),
         values: new Array(randomNumber(50))
           .fill(0)
           .map(() => ({
@@ -41,10 +35,10 @@ export class ChartDataService {
             value: randomNumber(1000),
           }))
           .sort((a, b) => a.time.getTime() - b.time.getTime()),
-      }
-    })
+      }))
 
     const createdDashboards = new this.dashBoardsModel({
+      _id: new Types.ObjectId(),
       name: chartDataDto.name,
       data: chartData,
     })
@@ -52,14 +46,22 @@ export class ChartDataService {
 
     const { accessCharts } = await this.usersService.findById(userId)
     await this.usersService.update(userId, {
-      accessCharts: [...accessCharts, dashboardData._id],
+      accessCharts: [...accessCharts, String(dashboardData._id)],
     })
 
     return true
   }
 
-  async getChart(id?: string) {
+  async getChart(req: Request, id?: string) {
+    const userId = req.cookies?.userId
+
+    if (!userId) throw new BadRequestException("userId not exist")
     if (!id) throw new BadRequestException("no id")
+
+    const user = await this.usersService.findById(userId)
+
+    if (!user.accessCharts.find((chart) => String(chart) === id))
+      throw new BadRequestException("dont have permission")
 
     return this.dashBoardsModel
       .findOne({ _id: new Types.ObjectId(id) })
