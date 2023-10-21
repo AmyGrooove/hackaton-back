@@ -10,7 +10,8 @@ import {
 import { ChartDataService } from "./chart-data.service"
 import { Request } from "express"
 import { AccessTokenGuard } from "../auth/guards/accessToken.guard"
-import { ChartDataDto } from "./dto/chartData"
+import { ChartDataDto } from "./dto/chartData.dto"
+import { GiveAccessDto } from "./dto/giveAccess.dto"
 
 @Controller("chart")
 export class ChartDataController {
@@ -23,14 +24,14 @@ export class ChartDataController {
   }
 
   @UseGuards(AccessTokenGuard)
-  @Get("idList")
-  getDashboardsIds(@Req() req: Request) {
-    return this.chartData.getDashboardsIds(req)
-  }
-
-  @UseGuards(AccessTokenGuard)
   @Get("getChart")
   getChart(@Query() id: string) {
     return this.chartData.getChart(id)
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Post("giveAccessAnother")
+  giveAccessAnother(@Req() req: Request, @Body() chartData: GiveAccessDto) {
+    return this.chartData.giveAccessAnother(req, chartData)
   }
 }

@@ -1,14 +1,22 @@
-import { Injectable } from "@nestjs/common"
+import { BadRequestException, Injectable } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model, ObjectId } from "mongoose"
 import { CreateUserDto } from "./dto/create-user.dto"
 import { Users } from "./schemas/users.schema"
 import { UpdateUserDto } from "./dto/update-user.dto"
 import { FindByUsername } from "./types"
+import { Request } from "express"
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(Users.name) private usersModel: Model<Users>) {}
+
+  async getUser(req: Request) {
+    const userId = req.cookies?.userId
+    if (!userId) throw new BadRequestException("userId not exist")
+
+    return this.findByIdLess(userId)
+  }
 
   async create(createUserDto: CreateUserDto): Promise<Users> {
     const createdUser = new this.usersModel(createUserDto)

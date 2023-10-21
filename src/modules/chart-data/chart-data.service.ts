@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable } from "@nestjs/common"
 import { IChartData } from "./types/chartData"
 import { InjectModel } from "@nestjs/mongoose"
-import { Dashboards } from "./schemas/dashbords.schema"
 import { Model, Types } from "mongoose"
 import { Request } from "express"
 import { UsersService } from "../users/users.service"
-import { ChartDataDto } from "./dto/chartData"
+import { ChartDataDto } from "./dto/chartData.dto"
+import { Dashboards } from "./schemas/dashboards.schema"
+import { GiveAccessDto } from "./dto/giveAccess.dto"
 
 const randomNumber = (max: number) => Math.floor(Math.random() * max)
 
@@ -57,22 +58,6 @@ export class ChartDataService {
     return true
   }
 
-  async getDashboardsIds(req: Request) {
-    const userId = req.cookies?.userId
-
-    if (!userId) throw new BadRequestException("userId not exist")
-
-    const { accessCharts } = await this.usersService.findById(userId)
-
-    const dashboards = await this.dashBoardsModel
-      .find({ _id: { $in: accessCharts } })
-      .select({ _id: 1 })
-      .lean()
-      .exec()
-
-    return dashboards
-  }
-
   async getChart(id?: string) {
     if (!id) throw new BadRequestException("no id")
 
@@ -80,5 +65,30 @@ export class ChartDataService {
       .findOne({ _id: new Types.ObjectId(id) })
       .lean()
       .exec()
+  }
+
+  async giveAccessAnother(req: Request, chartData: GiveAccessDto) {
+    const userId = req.cookies?.userId
+
+    if (!userId) throw new BadRequestException("userId not exist")
+
+    if (!chartData.dashboardId) throw new BadRequestException("no dashboardId")
+    if (!chartData.username) throw new BadRequestException("no username")
+
+    const addUser = await this.usersService.findByUsername(chartData.username)
+    const mainUser = await this.usersService.findById(userId)
+
+    if (
+      !mainUser.accessCharts.find(
+        (chart) => String(chart) === chartData.dashboardId,
+      )
+    )
+      throw new BadRequestException("dont have permission")
+    if (
+      addUser.accessCharts.find(
+        (chart) => String(chart) === chartData.dashboardId,
+      )
+    )
+      throw new BadRequestException("already have")
   }
 }

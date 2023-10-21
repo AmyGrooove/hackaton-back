@@ -1,5 +1,5 @@
 import { Prop, SchemaFactory, Schema } from "@nestjs/mongoose"
-import { HydratedDocument, Document, Types, ObjectId } from "mongoose"
+import { HydratedDocument, Document, Types } from "mongoose"
 
 export type UsersDocument = HydratedDocument<Users>
 
@@ -17,9 +17,11 @@ export class Users extends Document {
   @Prop({ default: "user" })
   role: string
 
-  @Prop({ type: [Types.ObjectId], default: [] })
-  accessCharts: ObjectId[]
-
+  @Prop({
+    type: [{ type: Types.ObjectId }],
+    default: [],
+  })
+  accessCharts: Types.ObjectId[]
   @Prop({ default: null })
   refreshToken: string | null
 }

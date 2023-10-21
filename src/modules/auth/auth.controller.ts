@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  UseGuards,
-  Get,
-  Body,
-  Res,
-  Req,
-} from "@nestjs/common"
+import { Controller, Post, UseGuards, Body, Res, Req } from "@nestjs/common"
 import { AuthService } from "./auth.service"
 import { CreateUserDto } from "../users/dto/create-user.dto"
 import { LoginUserDto } from "../users/dto/login-user.dto"
@@ -47,11 +39,5 @@ export class AuthController {
     @Req() req: Request,
   ) {
     return this.authService.refreshTokens(res, req)
-  }
-
-  @UseGuards(AccessTokenGuard)
-  @Get("whoami")
-  getUser(@Req() req: Request) {
-    return this.authService.getUser(req)
   }
 }

@@ -10,12 +10,7 @@ export class Dashboards extends Document {
   name: string
 
   @Prop({
-    type: [
-      {
-        id: Types.ObjectId,
-        values: [{ time: Date, value: Number }],
-      },
-    ],
+    type: [{ id: Types.ObjectId, values: [{ time: Date, value: Number }] }],
   })
   data: IChartData[]
 }

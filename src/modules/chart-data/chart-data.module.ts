@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common"
 import { ChartDataController } from "./chart-data.controller"
 import { ChartDataService } from "./chart-data.service"
 import { MongooseModule } from "@nestjs/mongoose"
-import { Dashboards, DashboardsSchema } from "./schemas/dashbords.schema"
+import { Dashboards, DashboardsSchema } from "./schemas/dashboards.schema"
 import { UsersModule } from "../users/users.module"
 
 @Module({
