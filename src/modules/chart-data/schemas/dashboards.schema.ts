@@ -16,6 +16,9 @@ export class Dashboards extends Document {
     type: [{ id: Types.ObjectId, values: [{ time: Date, value: Number }] }],
   })
   data: IChartData[]
+
+  @Prop({ default: "" })
+  uploadUrl: string
 }
 
 export const DashboardsSchema = SchemaFactory.createForClass(Dashboards)

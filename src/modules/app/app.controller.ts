@@ -1,4 +1,6 @@
 import { Controller, Get } from "@nestjs/common"
+import * as fs from "fs"
+import * as path from "path"
 
 @Controller("")
 export class AppController {
@@ -6,6 +8,8 @@ export class AppController {
 
   @Get("")
   getUser() {
-    "nazar"
+    const filePath = path.join("public/json.json")
+    const rawData = fs.readFileSync(filePath, "utf8")
+    return JSON.parse(rawData)
   }
 }
