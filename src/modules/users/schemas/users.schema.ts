@@ -18,10 +18,11 @@ export class Users extends Document {
   role: string
 
   @Prop({
-    type: [{ type: String }],
+    type: [{ name: String, id: String }],
     default: [],
   })
-  accessCharts: string[]
+  accessCharts: { name: string; id: string }[]
+
   @Prop({ default: null })
   refreshToken: string | null
 }

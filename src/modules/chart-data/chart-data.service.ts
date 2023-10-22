@@ -52,10 +52,13 @@ export class ChartDataService {
 
       const { accessCharts } = await this.usersService.findById(userId)
       await this.usersService.update(userId, {
-        accessCharts: [...accessCharts, String(dashboardData._id)],
+        accessCharts: [
+          ...accessCharts,
+          { id: String(dashboardData._id), name: String(dashboardData.name) },
+        ],
       })
 
-      return true
+      return dashboardData._id
     } catch (error) {
       throw new BadRequestException(error)
     }
@@ -80,10 +83,13 @@ export class ChartDataService {
 
       const { accessCharts } = await this.usersService.findById(userId)
       await this.usersService.update(userId, {
-        accessCharts: [...accessCharts, String(dashboardData._id)],
+        accessCharts: [
+          ...accessCharts,
+          { id: String(dashboardData._id), name: String(dashboardData.name) },
+        ],
       })
 
-      return true
+      return dashboardData._id
     } catch (error) {
       throw new BadRequestException(error)
     }
@@ -96,8 +102,13 @@ export class ChartDataService {
     if (!validateUrl.test(urlData.url))
       throw new BadRequestException("no valid url")
 
+    const response = await this.httpService.get(urlData.url).toPromise()
+
     try {
-      JSON.parse((await this.httpService.get(urlData.url).toPromise()).data)
+      if (
+        response.headers["content-type"] !== "application/json; charset=utf-8"
+      )
+        throw "no"
     } catch (error) {
       throw new BadRequestException("file not json")
     }
@@ -106,16 +117,20 @@ export class ChartDataService {
       const createdDashboards = new this.dashBoardsModel({
         _id: new Types.ObjectId(),
         name: urlData.name,
+        data: response,
         uploadUrl: urlData.url,
       })
       const dashboardData = await createdDashboards.save()
 
       const { accessCharts } = await this.usersService.findById(userId)
       await this.usersService.update(userId, {
-        accessCharts: [...accessCharts, String(dashboardData._id)],
+        accessCharts: [
+          ...accessCharts,
+          { id: String(dashboardData._id), name: String(dashboardData.name) },
+        ],
       })
 
-      return true
+      return dashboardData._id
     } catch (error) {
       throw new BadRequestException(error)
     }
@@ -129,7 +144,7 @@ export class ChartDataService {
 
     const user = await this.usersService.findById(userId)
 
-    if (!user.accessCharts.find((chart) => String(chart) === id))
+    if (!user.accessCharts.find((chart) => String(chart.id) === id))
       throw new BadRequestException("dont have permission")
 
     const dashboard = await this.dashBoardsModel
@@ -137,9 +152,19 @@ export class ChartDataService {
       .lean()
       .exec()
 
-    return dashboard.uploadUrl
-      ? (await this.httpService.get(dashboard.uploadUrl).toPromise()).data
-      : dashboard
+    if (dashboard.uploadUrl) {
+      const response = await this.httpService
+        .get(dashboard.uploadUrl)
+        .toPromise()
+
+      await this.dashBoardsModel.findByIdAndUpdate(dashboard._id, {
+        name: dashboard.name,
+        data: response.data,
+        uploadUrl: dashboard.uploadUrl,
+      })
+    }
+
+    return dashboard
   }
 
   async giveAccessAnother(req: Request, chartData: GiveAccessDto) {
@@ -155,13 +180,13 @@ export class ChartDataService {
 
     if (
       !mainUser.accessCharts.find(
-        (chart) => String(chart) === chartData.dashboardId,
+        (chart) => String(chart.id) === chartData.dashboardId,
       )
     )
       throw new BadRequestException("dont have permission")
     if (
       addUser.accessCharts.find(
-        (chart) => String(chart) === chartData.dashboardId,
+        (chart) => String(chart.id) === chartData.dashboardId,
       )
     )
       throw new BadRequestException("already have")
